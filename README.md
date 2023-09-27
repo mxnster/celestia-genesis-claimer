@@ -3,7 +3,7 @@
 This script allows you to check and claim celestia genesis drop
 
 ## Requeremets
-<b>To run this bot you have to top up your balance on [anticaptcha service](https://capmonster.cloud/)</b>
+<b>To run this bot you have to top up your balance on [anticaptcha service](https://www.capsolver.com/)</b>
 
 Mnemonics from generated accounts will be saved to folder `celestiaMnemonics.txt`
 

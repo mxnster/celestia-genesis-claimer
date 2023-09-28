@@ -13,7 +13,7 @@ async function handleWallet(wallet) {
 
     if (config.check) {
         let eligibleData = await getEligible(wallet);
-        console.log(eligibleData?.title)
+        console.log(eligibleData?.title || eligibleData)
         if (eligibleData?.title === 'You are eligible') fs.appendFileSync("eligible.txt", `${wallet}\n`)
     }
 }

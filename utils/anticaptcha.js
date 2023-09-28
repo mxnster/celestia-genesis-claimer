@@ -12,7 +12,7 @@ export async function solveCaptcha() {
                 "task": {
                     "type": "RecaptchaV3TaskProxyless",
                     "websiteURL": 'https://genesis.celestia.org/',
-                    "websiteKey": "6LdGZBonAAAAAE0mBBza18zR9usCiZo8BfHT7h24",
+                    "websiteKey": await getSiteKey(),
                     "pageAction": 'submit'
                 },
                 "softId": 0
@@ -53,5 +53,17 @@ async function getCaptchaResponse(taskId) {
         }
     } catch (e) {
         console.log("Не удалось получить решение капчи.");
+    }
+}
+
+
+async function getSiteKey() {
+    try {
+        let res = await axios.get(`https://genesis-api.celestia.org/api/v1/recaptcha/client-key`)
+        return res?.data
+    } catch (err) {
+        console.log('Не смог получить siteKey для антикапчи');
+        await timeout(5000)
+        return await getSiteKey()
     }
 }

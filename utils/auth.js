@@ -1,5 +1,8 @@
 import axios from "axios";
 import { solveCaptcha } from "./anticaptcha.js";
+import { proxyAgent } from "../index.js";
+import { timeout } from "./timeout.js";
+import { handleRetries } from "./handleRetries.js";
 
 
 export async function authMM(wallet, signature) {
@@ -8,6 +11,7 @@ export async function authMM(wallet, signature) {
 
         const response = await axios(`https://genesis-api.celestia.org/api/v1/metamask/auth`, {
             method: "POST",
+            httpsAgent: proxyAgent,
             data: {
                 'address': wallet.address,
                 'headers': { 'Content-Type': 'application/json' },
@@ -33,6 +37,16 @@ export async function authMM(wallet, signature) {
 
         return response?.data?.token
     } catch (e) {
-        console.log("Ошибка авторизации", e);
+        if (e?.response?.data?.slug === 'recaptcha-verification') {
+            console.log('[ERROR]', e.response.data.title);
+        } else console.log('[ERROR]', e?.response?.statusText || e?.code || e);
+
+        await timeout(5000, 8000)
+
+        if (await handleRetries(wallet.address)) {
+            return await authMM(wallet, signature)
+        }
+
+        return e?.response?.data
     }
 }

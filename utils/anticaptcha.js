@@ -1,4 +1,5 @@
 import { config } from "../config.js";
+import { proxyAgent } from "../index.js";
 import { handleRetries } from "./handleRetries.js";
 import { timeout } from "./timeout.js";
 import axios from "axios";
@@ -41,7 +42,6 @@ async function getCaptchaResponse(taskId) {
                 }
             })
             if (res?.data.status === "ready") {
-                // console.log(`Captcha solved`);
                 return res.data.solution.gRecaptchaResponse
             } else if (res?.data?.status === "processing") {
                 console.log(`Captcha status: processing`);
@@ -59,7 +59,7 @@ async function getCaptchaResponse(taskId) {
 
 async function getSiteKey() {
     try {
-        let res = await axios.get(`https://genesis-api.celestia.org/api/v1/recaptcha/client-key`)
+        let res = await axios.get(`https://genesis-api.celestia.org/api/v1/recaptcha/client-key`, { httpsAgent: proxyAgent })
         return res?.data
     } catch (err) {
         console.log('Не смог получить siteKey для антикапчи');

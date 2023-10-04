@@ -1,6 +1,9 @@
 import axios from "axios";
 import { solveCaptcha } from "./anticaptcha.js";
 import { config } from "../config.js";
+import { proxyAgent } from "../index.js";
+import { handleRetries } from "./handleRetries.js";
+import { timeout } from "./timeout.js";
 
 let headers = {
     'authority': 'genesis-api.celestia.org',
@@ -29,13 +32,23 @@ export async function getEligible(address, authToken = '') {
 
         const response = await axios({
             url: config.claim ? baseUrl : baseUrl + `/${address}?recaptcha_token=${recaptchaToken}`,
+            httpsAgent: proxyAgent,
             method: config.claim ? "POST" : "GET",
             headers: headers,
             data: config.claim ? { 'recaptcha_token': recaptchaToken } : {}
         })
 
-        return response.data
+        return response?.data
     } catch (e) {
-        return e?.response?.data
+        if (e?.response?.data?.slug === 'recaptcha-verification') {
+            console.log('[ERROR]', e.response.data.title);
+            if (await handleRetries(address)) return await getEligible(address, authToken)
+        } else {
+            if (e?.response?.data && !e?.response?.data.includes('Forbidden')) {
+                return e?.response?.data
+            } else console.log('[ERROR]', e?.response?.statusText || e?.code || e);
+
+            if (await handleRetries(address)) return await getEligible(address, authToken)
+        }
     }
 }

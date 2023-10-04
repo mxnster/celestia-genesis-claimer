@@ -1,11 +1,13 @@
 import axios from "axios"
 import { handleRetries } from "./handleRetries.js";
 import { solveCaptcha } from "./anticaptcha.js";
+import { proxyAgent } from "../index.js";
 
 export async function claimTokens(celAddress, authToken) {
     try {
         let response = await axios('https://genesis-api.celestia.org/api/v1/airdrop/claim', {
             method: "POST",
+            httpsAgent: proxyAgent,
             data: {
                 'address': celAddress,
                 'recaptcha_token': await solveCaptcha(),
@@ -30,8 +32,15 @@ export async function claimTokens(celAddress, authToken) {
 
         return response?.data
     } catch (e) {
-        console.log(e);
-        if (handleRetries) return await claimTokens(celAddress, authToken)
-        return false
+        if (e?.response?.data?.slug === 'recaptcha-verification') {
+            console.log('[ERROR]', e.response.data.title);
+            if (await handleRetries(celAddress)) return await claimTokens(celAddress, authToken)
+        } else {
+            if (e?.response?.data) {
+                return e?.response?.data
+            } else console.log('[ERROR]', e?.code || e);
+
+            if (await handleRetries(celAddress)) return await claimTokens(celAddress, authToken)
+        }
     }
 }

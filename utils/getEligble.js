@@ -44,7 +44,7 @@ export async function getEligible(address, authToken = '') {
             console.log('[ERROR]', e.response.data.title);
             if (await handleRetries(address)) return await getEligible(address, authToken)
         } else {
-            if (e?.response?.data && !e?.response?.data.includes('Forbidden')) {
+            if (e?.response?.data && !JSON.stringify(e?.response?.data).includes('Forbidden')) {
                 return e?.response?.data
             } else console.log('[ERROR]', e?.response?.statusText || e?.code || e);
 
